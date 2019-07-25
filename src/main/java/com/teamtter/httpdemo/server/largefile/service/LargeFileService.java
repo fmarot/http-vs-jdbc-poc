@@ -6,7 +6,6 @@ import java.sql.Blob;
 import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 
-import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.hibernate.Hibernate;
 import org.hibernate.Session;
 import org.hibernate.engine.jdbc.LobCreator;
@@ -36,7 +35,7 @@ public class LargeFileService {
 		Session session = entityManager.unwrap(Session.class);
 		LobCreator lobCreator = Hibernate.getLobCreator(session);
 		Blob blob = lobCreator.createBlob(inputStream, filesize);
-		StreamingFileRecord streamingFileRecord = new StreamingFileRecord(originalFilename, blob);
+		StreamingFileRecord streamingFileRecord = new StreamingFileRecord(originalFilename, filesize, blob);
 		streamingFileRecord = streamingFileRepository.save(streamingFileRecord);
 		log.info("Persisted {} with id: {}", originalFilename, streamingFileRecord.getId());
 		return streamingFileRecord;

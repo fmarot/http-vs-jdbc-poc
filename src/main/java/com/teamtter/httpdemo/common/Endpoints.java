@@ -5,6 +5,7 @@ public class Endpoints {
 
 	public class DownloadMethods {
 		public static final String file = "file";
+		public static final String id = "id";
 	}
 
 	public static final String upload = "upload";

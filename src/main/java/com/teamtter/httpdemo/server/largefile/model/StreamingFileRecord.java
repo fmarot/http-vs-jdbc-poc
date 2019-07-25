@@ -1,6 +1,7 @@
 package com.teamtter.httpdemo.server.largefile.model;
 
 import java.sql.Blob;
+
 import javax.persistence.Entity;
 import javax.persistence.GeneratedValue;
 import javax.persistence.GenerationType;
@@ -8,6 +9,7 @@ import javax.persistence.Id;
 import javax.persistence.Lob;
 import javax.persistence.SequenceGenerator;
 import javax.validation.constraints.NotNull;
+
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -16,20 +18,25 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StreamingFileRecord {
 
-    @Id
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_RECORD_ID_SEQ")
-    @SequenceGenerator(name="FILE_RECORD_ID_SEQ", sequenceName = "FILE_RECORD_ID_SEQ")
-    private long id;
+	@Id
+	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_RECORD_ID_SEQ")
+	@SequenceGenerator(name = "FILE_RECORD_ID_SEQ", sequenceName = "FILE_RECORD_ID_SEQ")
+	private long	id;
 
-    @NotNull
-    private String name;
+	@NotNull
+	private String	filename;
 
-    @Lob
-    @NotNull
-    private Blob data;
+	@NotNull
+	private long	dataLength;
 
-    public StreamingFileRecord(String name, Blob data) {
-        this.name = name;
-        this.data = data;
-    }
+	@Lob
+	@NotNull
+	private Blob	data;
+
+	public StreamingFileRecord(String filename, long dataLength, Blob data) {
+		this.filename = filename;
+		this.dataLength = dataLength;
+		this.data = data;
+	}
+
 }
