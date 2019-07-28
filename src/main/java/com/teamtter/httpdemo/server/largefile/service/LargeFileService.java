@@ -37,15 +37,15 @@ public class LargeFileService {
 		Blob blob = lobCreator.createBlob(inputStream, filesize);
 		StreamingFileRecord streamingFileRecord = new StreamingFileRecord(originalFilename, filesize, blob);
 		streamingFileRecord = streamingFileRepository.save(streamingFileRecord);
-		log.info("Persisted {} with id: {}", originalFilename, streamingFileRecord.getId());
+		log.info("Persisted {}", originalFilename);
 		return streamingFileRecord;
 	}
 
-	@Transactional
-	public StreamingFileRecord loadRecordById(long id) {
-		log.info("Loading file id: {}", id);
-		return streamingFileRepository.findById(id).get();
-	}
+//	@Transactional
+//	public StreamingFileRecord loadRecordById(long id) {
+//		log.info("Loading file id: {}", id);
+//		return streamingFileRepository.findById(id).get();
+//	}
 
 	@Transactional
 	public StreamingFileRecord loadRecordByFilename(String filename) {

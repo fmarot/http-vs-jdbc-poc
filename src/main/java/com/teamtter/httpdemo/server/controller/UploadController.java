@@ -39,7 +39,7 @@ public class UploadController {
 			@RequestParam(Endpoints.UploadMethods.filesize_var) long filesize,
 			HttpServletRequest request) throws IOException, SQLException, URISyntaxException {
 		StreamingFileRecord newRecord = lfService.saveFile(filename, filesize, request.getInputStream());
-		return ResponseEntity.created(new URI("http://localhost:8080/blobs/" + newRecord.getId())).build();
+		return ResponseEntity.created(new URI("http://localhost:8080/blobs/" + newRecord.getFilename())).build();
 	}
 	/*
 		@RequestMapping(value = "/blobs/{id}", method = RequestMethod.GET)

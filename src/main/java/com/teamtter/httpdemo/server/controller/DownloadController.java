@@ -1,9 +1,11 @@
 package com.teamtter.httpdemo.server.controller;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
@@ -31,9 +33,9 @@ public class DownloadController {
 
 	@GetMapping(path = Endpoints.DownloadMethods.file,
 			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
-	public InputStreamResource downloadFile(
+	public void downloadFile(
 			@RequestParam(Endpoints.DownloadMethods.filename_var) String filename,
-			HttpServletResponse response) throws SQLException {
+			HttpServletResponse response) throws SQLException, IOException {
 		
 		StreamingFileRecord record = lfService.loadRecordByFilename(filename);
 
@@ -41,9 +43,12 @@ public class DownloadController {
 		response.setHeader(HttpHeaders.CONTENT_LENGTH, "" + record.getDataLength());
 		// response.setHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");	this line does not work. Alternatively the solution is to rely on @GetMapping(produces)
 
-		InputStreamResource resource = new InputStreamResource(record.getData().getBinaryStream());
+		IOUtils.copyLarge(record.getData().getBinaryStream(), response.getOutputStream());
+		
+		
+//		InputStreamResource resource = new InputStreamResource(record.getData().getBinaryStream());
 		log.info("controller downloadFile returned the stream...");
-		return resource;
+//		return resource;
 	}
 
 }

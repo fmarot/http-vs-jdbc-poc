@@ -18,11 +18,12 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class StreamingFileRecord {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_RECORD_ID_SEQ")
-	@SequenceGenerator(name = "FILE_RECORD_ID_SEQ", sequenceName = "FILE_RECORD_ID_SEQ")
-	private long	id;
+//	@Id
+//	@GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "FILE_RECORD_ID_SEQ")
+//	@SequenceGenerator(name = "FILE_RECORD_ID_SEQ", sequenceName = "FILE_RECORD_ID_SEQ")
+//	private long	id;
 
+	@Id
 	@NotNull
 	private String	filename;
 
