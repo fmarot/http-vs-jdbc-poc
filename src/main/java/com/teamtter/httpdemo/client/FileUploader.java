@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.net.URI;
 
 import com.teamtter.httpdemo.common.Endpoints;
 
@@ -26,18 +27,20 @@ public class FileUploader {
 
 	private OkHttpClient			httpClient;
 
-	private String					uploadUrl;
+	private URI					uploadUrl;
 
-	public FileUploader(OkHttpClient httpClient, String uploadUrl) {
+	public FileUploader(OkHttpClient httpClient, URI uploadUri) {
 		this.httpClient = httpClient;
-		this.uploadUrl = uploadUrl;
+		this.uploadUrl = uploadUri;
 	}
 
-	public void uploadFile(File toUploadFile) {
+	public void uploadFile(File toUploadFile) throws IOException {
 		try (InputStream is = new FileInputStream(toUploadFile)) {
-			uploadStreamTo(is, Endpoints.UploadMethods.filename_var + "=" + toUploadFile.getName());
-		} catch (IOException e) {
-			log.error("", e);
+			uploadStreamTo(is, 
+					Endpoints.UploadMethods.filename_var + "=" + toUploadFile.getName()
+					+ "&"
+					+ Endpoints.UploadMethods.filesize_var + "=" + toUploadFile.length()
+					);
 		}
 	}
 
@@ -73,6 +76,11 @@ public class FileUploader {
 			this.mediaType = mediaType;
 			this.inputStream = inputStream;
 		}
+		
+		@Override
+		public boolean isOneShot() {
+			return true;
+		}
 
 		@Override
 		public MediaType contentType() {
@@ -91,8 +99,8 @@ public class FileUploader {
 				source = Okio.source(inputStream);
 				sink.writeAll(source);
 			} finally {
-				Util.closeQuietly(source);
-				Util.closeQuietly(inputStream);
+//				Util.closeQuietly(inputStream);
+//				Util.closeQuietly(source);
 			}
 		}
 	}

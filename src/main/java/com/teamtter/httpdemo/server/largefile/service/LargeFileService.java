@@ -47,4 +47,10 @@ public class LargeFileService {
 		return streamingFileRepository.findById(id).get();
 	}
 
+	@Transactional
+	public StreamingFileRecord loadRecordByFilename(String filename) {
+		log.info("Loading filename: {}", filename);
+		return streamingFileRepository.findByFilename(filename).get();
+	}
+
 }

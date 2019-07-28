@@ -11,6 +11,7 @@ import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import com.teamtter.httpdemo.common.Endpoints;
@@ -20,7 +21,8 @@ import com.teamtter.httpdemo.server.largefile.service.LargeFileService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Controller(Endpoints.upload)	// not @RestController !
+@Controller			// not @RestController !
+@RequestMapping(Endpoints.upload)
 public class UploadController {
 
 	private final LargeFileService lfService;
@@ -28,8 +30,8 @@ public class UploadController {
 	public UploadController(LargeFileService lfService) {
 		this.lfService = lfService;
 	}
-
-	@PostMapping(value = Endpoints.UploadMethods.file,
+	
+	@PostMapping(path = Endpoints.UploadMethods.file,
 			consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
 			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
 	public ResponseEntity<Long> upload(
