@@ -1,4 +1,4 @@
-package com.teamtter.httpdemo.client;
+package com.teamtter.httpdemo.client.filetransfer;
 
 import java.io.File;
 import java.io.FileInputStream;

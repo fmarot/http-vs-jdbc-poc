@@ -1,8 +1,10 @@
-package com.teamtter.httpdemo.client;
+package com.teamtter.httpdemo.client.filetransfer;
 
 import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.text.DecimalFormat;
 
 import lombok.extern.slf4j.Slf4j;
@@ -10,14 +12,16 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 public class LargeFileCreatorHelper {
 
-	public static void createLargeFileIfNotExists(File myLargeFile) {
-		if (!myLargeFile.exists()) {
-			try (RandomAccessFile f = new RandomAccessFile(myLargeFile, "rw")) {
-				f.setLength(1024 * 1024 * 1024 * 2 - 1); // 2Go
-			} catch (IOException e) {
-				log.error("", e);
-			}
+	public static File createAutoDestructibleLargeFileInTmp(long nbBytes) throws IOException {
+		Path path = Files.createTempFile("largeFileFrancois-", ".tmp");
+		File file = path.toFile();
+		file.deleteOnExit();
+
+		try (RandomAccessFile f = new RandomAccessFile(file, "rw")) {
+			f.setLength(nbBytes);
 		}
+		log.info("Created file {} of size {}", file, nbBytes);
+		return file;
 	}
 
 	public static String readableFileSize(long size) {

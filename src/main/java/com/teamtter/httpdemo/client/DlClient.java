@@ -1,58 +1,61 @@
 package com.teamtter.httpdemo.client;
 
 import java.io.File;
-import java.io.IOException;
+import java.net.URI;
 import java.net.URL;
-import java.util.concurrent.Callable;
 
-import org.springframework.util.StringUtils;
+import org.springframework.util.unit.DataSize;
 
+import org.springframework.util.StopWatch;
+
+import com.teamtter.httpdemo.client.filetransfer.FileDownloader;
+import com.teamtter.httpdemo.client.filetransfer.FileDownloaderJdbc;
+import com.teamtter.httpdemo.client.filetransfer.FileUploader;
+import com.teamtter.httpdemo.client.filetransfer.LargeFileCreatorHelper;
 import com.teamtter.httpdemo.common.Endpoints;
 
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.OkHttpClient;
 import okhttp3.logging.HttpLoggingInterceptor;
 import okhttp3.logging.HttpLoggingInterceptor.Level;
-import picocli.CommandLine;
-import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
-import picocli.CommandLine.Parameters;
 
-@Command(name = "dlclient", mixinStandardHelpOptions = true, description = "bla bla ...")
 @Slf4j
-public class DlClient implements Callable<Integer> {
+public class DlClient {
 
-	@Parameters(index = "0", description = "The serverIp", defaultValue = "http://127.0.0.1:8080")
-	private URL			serverUrl;
+	public static void main(String[] args) throws Exception {
+		
+		DataSize defaultLargeFileSize = DataSize.parse("500MB");
+		DataSize dataSize = args.length == 0 ? defaultLargeFileSize : DataSize.parse(args[0]);   
+		long nbBytes = dataSize.toBytes();
 
-	@Option(names = { "-u", "--upload" }, description = "file to upload", defaultValue="LICENSE")
-	private File			toUploadFile;
+		URL defaultUrl = new URL("http://127.0.0.1:8080");
+		URL serverUrl = args.length > 1 ? new URL(args[1]) : defaultUrl;
 
-	@Option(names = { "-d", "--download" }, description = "file to download in http", defaultValue="LICENSE")
-	private String			toDownloadFile;
-
-	@Option(names = { "-djdbc", "--downloadjdbc" }, description = "file to download in jdbc", defaultValue="LICENSE")
-	private String			toDownloadFileJdbc;
-
-	public static void main(String[] args) throws IOException {
-		int exitCode = new CommandLine(new DlClient()).execute(args);
-		System.exit(exitCode);
-	}
-
-	@Override
-	public Integer call() throws Exception {
+		File largeFile = LargeFileCreatorHelper.createAutoDestructibleLargeFileInTmp(nbBytes);
+		String fileId = largeFile.getName();
 		OkHttpClient httpClient = buildHttpClient();
-		if (toUploadFile != null) {
-			new FileUploader(httpClient, serverUrl.toURI().resolve(Endpoints.upload +Endpoints.UploadMethods.file ))
-				.uploadFile(toUploadFile);
-		}
-		if (!StringUtils.isEmpty(toDownloadFile)) {
-			new FileDownloader(httpClient, serverUrl).downloadFile(toDownloadFile);
-		}
-		if (!StringUtils.isEmpty(toDownloadFileJdbc)) {
-			new FileDownloaderJdbc(serverUrl.getHost(), "9092").downloadFile(toDownloadFileJdbc);
-		}
-		return 0;
+		URI uploadUri = serverUrl.toURI().resolve(Endpoints.upload + Endpoints.UploadMethods.file);
+		new FileUploader(httpClient, uploadUri)
+				.uploadFile(largeFile);
+
+		StopWatch httpWatch = new StopWatch("http");
+		httpWatch.start();
+		new FileDownloader(httpClient, serverUrl).downloadFile(fileId);
+		httpWatch.stop();
+		httpWatch.start();
+		new FileDownloader(httpClient, serverUrl).downloadFile(fileId);
+		httpWatch.stop();
+		log.info("HTTP: " + httpWatch);
+
+		StopWatch jbdcWatch = new StopWatch("jdbc");
+		jbdcWatch.start();
+		new FileDownloaderJdbc(serverUrl.getHost(), "9092").downloadFile(fileId);
+		jbdcWatch.stop();
+		jbdcWatch.start();
+		new FileDownloaderJdbc(serverUrl.getHost(), "9092").downloadFile(fileId);
+		jbdcWatch.stop();
+		log.info("JDBC: " + jbdcWatch);
+		
 	}
 
 	private static OkHttpClient buildHttpClient() {

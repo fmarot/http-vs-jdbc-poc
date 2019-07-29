@@ -32,7 +32,7 @@ public class ServerApp {
     @Bean(initMethod = "start", destroyMethod = "stop")
     public Server h2Server() throws SQLException {
     	// will listen on all addresses
-        return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-tcpPort", serverJdbcPort);
+        return Server.createTcpServer("-tcp", "-tcpAllowOthers", "-webAllowOthers", "-tcpPort", serverJdbcPort);
     }
 /*
 	@ControllerAdvice
