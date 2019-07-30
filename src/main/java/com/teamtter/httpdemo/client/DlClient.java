@@ -35,27 +35,23 @@ public class DlClient {
 		String fileId = largeFile.getName();
 		OkHttpClient httpClient = buildHttpClient();
 		URI uploadUri = serverUrl.toURI().resolve(Endpoints.upload + Endpoints.UploadMethods.file);
-		new FileUploader(httpClient, uploadUri)
-				.uploadFile(largeFile);
+		String databaseFileName = new FileUploader(httpClient, uploadUri).uploadFile(largeFile);
 
-		StopWatch httpWatch = new StopWatch("http");
-		httpWatch.start();
-		new FileDownloader(httpClient, serverUrl).downloadFile(fileId);
-		httpWatch.stop();
-		httpWatch.start();
-		new FileDownloader(httpClient, serverUrl).downloadFile(fileId);
-		httpWatch.stop();
-		log.info("HTTP: " + httpWatch);
 
-		StopWatch jbdcWatch = new StopWatch("jdbc");
-		jbdcWatch.start();
-		new FileDownloaderJdbc(serverUrl.getHost(), "9092").downloadFile(fileId);
-		jbdcWatch.stop();
-		jbdcWatch.start();
-		new FileDownloaderJdbc(serverUrl.getHost(), "9092").downloadFile(fileId);
-		jbdcWatch.stop();
-		log.info("JDBC: " + jbdcWatch);
-		
+		executeDownload(2, "http_1", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.filename_var));
+		executeDownload(2, "http_spring", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.filename_var));
+		executeDownload(2, "JDBC", () -> new FileDownloaderJdbc(serverUrl.getHost(), "9092", databaseFileName).downloadFile(fileId));
+	}
+
+	/** executes the downloadCode a certain number of times, logging the time result with a watch having the "donwloadType" id */
+	private static void executeDownload(int nbExecutions, String downloadType, Runnable downloadCode) {
+		StopWatch watch = new StopWatch(downloadType);
+		for (int i=0; i<nbExecutions; i++) {
+			watch.start(""+i);
+			downloadCode.run();
+			watch.stop();
+		}
+		log.info("\n{}: {}\n", downloadType, watch);
 	}
 
 	private static OkHttpClient buildHttpClient() {

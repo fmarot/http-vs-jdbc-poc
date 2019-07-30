@@ -27,30 +27,34 @@ public class FileDownloaderJdbc {
 	private String connectionString;
 
 	public static void main(String[] args) throws Exception {
-		new FileDownloaderJdbc("127.0.0.1", "9092").downloadFile("xxx");
+		new FileDownloaderJdbc("127.0.0.1", "9092", "~/test").downloadFile("xxx");
 	}
 
-	public FileDownloaderJdbc(String serverHost, String jdbcPort) {
-		connectionString = "jdbc:h2:tcp://" + serverHost + ":" + jdbcPort + "/~/test";
+	public FileDownloaderJdbc(String serverHost, String jdbcPort, String databaseName) {
+		connectionString = "jdbc:h2:tcp://" + serverHost + ":" + jdbcPort + "/" + databaseName;
 	}
 
-	public void downloadFile(String filename) throws Exception {
-		try (Connection conn = getDBConnection()) {
-			String sql = "SELECT data FROM Streaming_File_Record WHERE filename = ? ";
-			PreparedStatement stmt = conn.prepareStatement(sql);
-			stmt.setString(1, filename);
-			ResultSet resultSet = stmt.executeQuery();
-			if (resultSet.next()) {
-				File downloadedFile = File.createTempFile(filename+"-", ".tmp");
-				downloadedFile.deleteOnExit();
-				try (FileOutputStream fos = new FileOutputStream(downloadedFile);
-						InputStream is = resultSet.getBinaryStream(1)) {
-					IOUtils.copy(is, fos);
-					log.info("File {} correctly copied to {}", filename, downloadedFile);
+	public void downloadFile(String filename) throws RuntimeException {
+		try {
+			try (Connection conn = getDBConnection()) {
+				String sql = "SELECT data FROM Streaming_File_Record WHERE filename = ? ";
+				PreparedStatement stmt = conn.prepareStatement(sql);
+				stmt.setString(1, filename);
+				ResultSet resultSet = stmt.executeQuery();
+				if (resultSet.next()) {
+					File downloadedFile = File.createTempFile(filename+"-", ".tmp");
+					downloadedFile.deleteOnExit();
+					try (FileOutputStream fos = new FileOutputStream(downloadedFile);
+							InputStream is = resultSet.getBinaryStream(1)) {
+						IOUtils.copy(is, fos);
+						log.info("File {} correctly copied to {}", filename, downloadedFile);
+					}
+				} else {
+					log.warn("File {} not found to download", filename);
 				}
-			} else {
-				log.warn("File {} not found to download", filename);
 			}
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 

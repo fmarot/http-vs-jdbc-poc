@@ -34,13 +34,15 @@ public class FileUploader {
 		this.uploadUrl = uploadUri;
 	}
 
-	public void uploadFile(File toUploadFile) throws IOException {
+	public String uploadFile(File toUploadFile) throws IOException {
 		try (InputStream is = new FileInputStream(toUploadFile)) {
-			uploadStreamTo(is, 
+			Response response = uploadStreamTo(is, 
 					Endpoints.UploadMethods.filename_var + "=" + toUploadFile.getName()
 					+ "&"
 					+ Endpoints.UploadMethods.filesize_var + "=" + toUploadFile.length()
 					);
+			String databaseFileName = response.body().string();
+			return databaseFileName;
 		}
 	}
 

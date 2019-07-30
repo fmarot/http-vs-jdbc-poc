@@ -1,18 +1,17 @@
 package com.teamtter.httpdemo.server.controller;
 
 import java.io.IOException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.sql.SQLException;
 
 import javax.servlet.http.HttpServletRequest;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.MediaType;
-import org.springframework.http.ResponseEntity;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.teamtter.httpdemo.common.Endpoints;
 import com.teamtter.httpdemo.server.largefile.model.StreamingFileRecord;
@@ -21,25 +20,27 @@ import com.teamtter.httpdemo.server.largefile.service.LargeFileService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Controller			// not @RestController !
+@RestController			// not @RestController !
 @RequestMapping(Endpoints.upload)
 public class UploadController {
 
 	private final LargeFileService lfService;
+	private String databaseFileName;
 
-	public UploadController(LargeFileService lfService) {
+	public UploadController(LargeFileService lfService, @Value("${databaseFileName:~/tmp/test}") String databaseFileName) {
 		this.lfService = lfService;
+		this.databaseFileName = databaseFileName;
 	}
 	
 	@PostMapping(path = Endpoints.UploadMethods.file,
 			consumes = MediaType.APPLICATION_OCTET_STREAM_VALUE,
-			produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
-	public ResponseEntity<Long> upload(
+			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	public String upload(
 			@RequestParam(Endpoints.UploadMethods.filename_var) String filename,
 			@RequestParam(Endpoints.UploadMethods.filesize_var) long filesize,
 			HttpServletRequest request) throws IOException, SQLException, URISyntaxException {
 		StreamingFileRecord newRecord = lfService.saveFile(filename, filesize, request.getInputStream());
-		return ResponseEntity.created(new URI("http://localhost:8080/blobs/" + newRecord.getFilename())).build();
+		return databaseFileName;
 	}
 	/*
 		@RequestMapping(value = "/blobs/{id}", method = RequestMethod.GET)
