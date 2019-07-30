@@ -9,6 +9,7 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 
+import org.h2.jdbcx.JdbcConnectionPool;
 import org.h2.util.IOUtils;
 
 import lombok.extern.slf4j.Slf4j;
@@ -24,6 +25,8 @@ public class FileDownloaderJdbc {
 		}
 	}
 	
+	private JdbcConnectionPool						connectionPool;
+	
 	private String connectionString;
 
 	public static void main(String[] args) throws Exception {
@@ -32,6 +35,8 @@ public class FileDownloaderJdbc {
 
 	public FileDownloaderJdbc(String serverHost, String jdbcPort) {
 		connectionString = "jdbc:h2:tcp://" + serverHost + ":" + jdbcPort + "/~/test";
+		connectionPool = JdbcConnectionPool.create(connectionString, "sa", "");
+		connectionPool.setMaxConnections(10); // TODO make it a property?
 	}
 
 	public void downloadFile(String filename) throws Exception {
@@ -55,9 +60,20 @@ public class FileDownloaderJdbc {
 	}
 
 	private Connection getDBConnection() throws SQLException {
-		Connection dbConnection = DriverManager.getConnection(connectionString, "sa", "");
-		dbConnection.setAutoCommit(true);
-		return dbConnection;
+		int nbActiveConnections = connectionPool.getActiveConnections();
+		int nbMaxConnections = connectionPool.getMaxConnections();
+		log.trace("Nb of active connections {} / {}", nbActiveConnections, nbMaxConnections);
+		if (nbActiveConnections >= nbMaxConnections) {
+			log.error("Max number of connections reached, app will perform slowly :(");
+		} else if (nbActiveConnections == nbMaxConnections - 1) {
+			log.warn("Max number of connections nearly reached, app may perform slowly in a near future");
+		}
+		Connection connection = null;
+
+		connection = connectionPool.getConnection();
+		connection.setAutoCommit(true);
+
+		return connection;
 	}
 	/*
 	 * public void uploadFile() { try (Connection connection = getDBConnection()) {
