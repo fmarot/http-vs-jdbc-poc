@@ -44,8 +44,12 @@ public class FileDownloader {
 			downloadedFile.deleteOnExit();
 			try (InputStream downloadedFileStream = response.body().byteStream();
 					FileOutputStream fos = new FileOutputStream(downloadedFile)) {
-//				long contentLength = Long.parseLong(response.header("Content-Length"));
-//				String filesize = LargeFileCreatorHelper.readableFileSize(contentLength);
+				try {
+					long contentLength = Long.parseLong(response.header("Content-Length"));
+					String filesize = LargeFileCreatorHelper.readableFileSize(contentLength);
+				} catch (Exception e) {
+					log.error("could not compuite content length...");
+				}
 				IOUtils.copy(downloadedFileStream, fos);
 				log.info("File {} correctly copied to {}", toDownloadFilename/*, filesize*/, downloadedFile);
 			}
