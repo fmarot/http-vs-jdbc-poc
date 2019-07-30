@@ -4,14 +4,14 @@ import java.io.File;
 import java.net.URI;
 import java.net.URL;
 
-import org.springframework.util.unit.DataSize;
-
 import org.springframework.util.StopWatch;
+import org.springframework.util.unit.DataSize;
 
 import com.teamtter.httpdemo.client.filetransfer.FileDownloader;
 import com.teamtter.httpdemo.client.filetransfer.FileDownloaderJdbc;
 import com.teamtter.httpdemo.client.filetransfer.FileUploader;
 import com.teamtter.httpdemo.client.filetransfer.LargeFileCreatorHelper;
+import com.teamtter.httpdemo.client.filetransfer.PublicFileDownloader;
 import com.teamtter.httpdemo.common.Endpoints;
 
 import lombok.extern.slf4j.Slf4j;
@@ -38,8 +38,17 @@ public class DlClient {
 		String databaseFileName = new FileUploader(httpClient, uploadUri).uploadFile(largeFile);
 
 
-		executeDownload(2, "http_1", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.filename_var));
-		executeDownload(2, "http_spring", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.filename_var));
+		executeDownload(2, "http_1", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file));
+		
+		executeDownload(2, "http_spring", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file_spring));
+		
+		executeDownload(2, "http_spring", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file_spring));
+		
+		executeDownload(2, "http_1", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file));
+
+		executeDownload(2, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
+		executeDownload(2, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
+		
 		executeDownload(2, "JDBC", () -> new FileDownloaderJdbc(serverUrl.getHost(), "9092", databaseFileName).downloadFile(fileId));
 	}
 
@@ -58,7 +67,7 @@ public class DlClient {
 		HttpLoggingInterceptor.Logger logger = new HttpLoggingInterceptor.Logger() {
 			@Override
 			public void log(String message) {
-				log.info(message);
+				log.debug(message);
 			}
 		};
 		HttpLoggingInterceptor logging = new HttpLoggingInterceptor(logger);

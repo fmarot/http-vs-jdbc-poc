@@ -10,10 +10,10 @@ import org.apache.tomcat.util.http.fileupload.IOUtils;
 import org.springframework.core.io.InputStreamResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.teamtter.httpdemo.common.Endpoints;
 import com.teamtter.httpdemo.server.largefile.model.StreamingFileRecord;
@@ -22,7 +22,7 @@ import com.teamtter.httpdemo.server.largefile.service.LargeFileService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@Controller					// not @RestController !
+@RestController					// not @RestController !
 @RequestMapping(Endpoints.download)
 public class DownloadController {
 
@@ -48,21 +48,30 @@ public class DownloadController {
 		log.info("controller downloadFile returned the stream...");
 	}
 
-	@GetMapping(path = Endpoints.DownloadMethods.file_spring,
-			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)
+	@GetMapping(path = Endpoints.DownloadMethods.file_spring)
 	public InputStreamResource downloadFileSpring(
 			@RequestParam(Endpoints.DownloadMethods.filename_var) String filename,
 			HttpServletResponse response) throws SQLException, IOException {
 		
 		StreamingFileRecord record = lfService.loadRecordByFilename(filename);
 		
-		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + record.getFilename());	// allows the browser to propose downloading a separate file instead of displaying it inline
-		response.setHeader(HttpHeaders.CONTENT_LENGTH, "" + record.getDataLength());
+//		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + record.getFilename());	// allows the browser to propose downloading a separate file instead of displaying it inline
+		//response.setHeader(HttpHeaders.CONTENT_LENGTH, "" + record.getDataLength());
 		
 		InputStream binaryStream = record.getData().getBinaryStream();
-		InputStreamResource resource = new InputStreamResource(binaryStream);
-		log.info("controller downloadFile returned the stream...");
-		return resource;
+		log.info("controller downloadFileSpring returned the stream...");
+		
+		return new InputStreamResource(binaryStream) {
+	        @Override
+	        public long contentLength() {
+	            return record.getDataLength();
+	        }
+	       
+	    	@Override
+	    	public String getFilename() {
+	    		return record.getFilename();
+	    	}
+	    };
 	}
 
 }

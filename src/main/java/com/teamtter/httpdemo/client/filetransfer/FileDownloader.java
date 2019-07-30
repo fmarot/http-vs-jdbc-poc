@@ -25,7 +25,7 @@ public class FileDownloader {
 	public FileDownloader(OkHttpClient httpClient, URL serverUrl) {
 		this.httpClient = httpClient;
 		try {
-			baseUrl = serverUrl.toURI().resolve(Endpoints.download + Endpoints.DownloadMethods.file).toString() + "?";
+			baseUrl = serverUrl.toURI().resolve(Endpoints.download).toString();
 		} catch (URISyntaxException e) {
 			throw new RuntimeException(e);
 		} 
@@ -33,7 +33,7 @@ public class FileDownloader {
 
 	public void downloadFile(String toDownloadFilename, String endpoint) throws RuntimeException {
 		try {
-			String url = baseUrl + endpoint + "=" + toDownloadFilename;
+			String url = baseUrl + endpoint + "?" + Endpoints.UploadMethods.filename_var + "=" + toDownloadFilename;
 			Request request = new Request.Builder()
 					.url(url)
 					.get().build();
@@ -48,7 +48,7 @@ public class FileDownloader {
 					long contentLength = Long.parseLong(response.header("Content-Length"));
 					String filesize = LargeFileCreatorHelper.readableFileSize(contentLength);
 				} catch (Exception e) {
-					log.error("could not compuite content length...");
+					log.error("could not compute content length...");
 				}
 				IOUtils.copy(downloadedFileStream, fos);
 				log.info("File {} correctly copied to {}", toDownloadFilename/*, filesize*/, downloadedFile);
