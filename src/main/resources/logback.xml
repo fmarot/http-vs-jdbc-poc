@@ -1,4 +1,4 @@
-<configuration debug="true" scan="true" scanPeriod="30 seconds">
+<configuration debug="false" scan="false" scanPeriod="30 seconds">
 
 	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
 		<layout class="ch.qos.logback.classic.PatternLayout">
