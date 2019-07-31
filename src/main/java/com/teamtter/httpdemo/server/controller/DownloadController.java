@@ -31,6 +31,10 @@ public class DownloadController {
 	public DownloadController(LargeFileService lfService) {
 		this.lfService = lfService;
 	}
+	
+	//////////////
+	// TODO: as an alternative we could test with ** StreamingResponseBody **
+	//////////////
 
 	@GetMapping(path = Endpoints.DownloadMethods.file,
 			produces = MediaType.APPLICATION_OCTET_STREAM_VALUE)

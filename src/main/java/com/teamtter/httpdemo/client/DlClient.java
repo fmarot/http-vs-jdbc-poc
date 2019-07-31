@@ -38,18 +38,13 @@ public class DlClient {
 		String databaseFileName = new FileUploader(httpClient, uploadUri).uploadFile(largeFile);
 
 
-		executeDownload(2, "http_1", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file));
+		executeDownload(3, "http_1", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file));
 		
-		executeDownload(2, "http_spring", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file_spring));
-		
-		executeDownload(2, "http_spring", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file_spring));
-		
-		executeDownload(2, "http_1", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file));
+		executeDownload(3, "http_spring", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file_spring));
 
-		executeDownload(2, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
-		executeDownload(2, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
+		executeDownload(3, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
 		
-		executeDownload(2, "JDBC", () -> new FileDownloaderJdbc(serverUrl.getHost(), "9092", databaseFileName).downloadFile(fileId));
+		executeDownload(3, "JDBC", () -> new FileDownloaderJdbc(serverUrl.getHost(), "9092", databaseFileName).downloadFile(fileId));
 	}
 
 	/** executes the downloadCode a certain number of times, logging the time result with a watch having the "donwloadType" id */
