@@ -13,6 +13,7 @@ import com.teamtter.httpdemo.common.ServerInfos;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
 import okhttp3.MediaType;
+import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
@@ -24,13 +25,11 @@ import okio.Source;
 @Slf4j
 public class HttpFileUploader {
 
-	private static final MediaType	mediaTypeOctet	= MediaType.parse(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE);
+	private OkHttpClient	httpClient;
 
-	private OkHttpClient			httpClient;
+	private URI				uploadUrl;
 
-	private URI						uploadUrl;
-
-	private ObjectMapper			objectMapper;
+	private ObjectMapper	objectMapper;
 
 	public HttpFileUploader(OkHttpClient httpClient, URI uploadUri) {
 		this.httpClient = httpClient;
@@ -44,6 +43,25 @@ public class HttpFileUploader {
 					Endpoints.UploadMethods.filename_var + "=" + toUploadFile.getName()
 							+ "&"
 							+ Endpoints.UploadMethods.filesize_var + "=" + toUploadFile.length());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
+		}
+	}
+
+	public void uploadFileAsMultipart(File toUploadFile) throws RuntimeException {
+		try {
+			RequestBody requestBody = new MultipartBody.Builder()
+					//.setType(MultipartBody.FORM)
+					.addFormDataPart("files", toUploadFile.getName(), RequestBody.create(MediaType.parse(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE), toUploadFile))
+					.build();
+
+			Request request = new Request.Builder()
+					// .header("Authorization", "Client-ID " + IMGUR_CLIENT_ID)
+					.url(uploadUrl + "/" + Endpoints.UploadMethods.uploadMultipartFiles)
+					.post(requestBody)
+					.build();
+			Call call = httpClient.newCall(request);
+			Response response = call.execute();
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
@@ -67,7 +85,7 @@ public class HttpFileUploader {
 	/** Warning: The InpuStream will be automatically closed at the end of the upload. </br>
 	 * WARNING: see the comment in {@link InputStreamRequestBody} because it is non-standard... */
 	public Response uploadStreamTo(InputStream inputStream, String queryParameters) throws IOException {
-		RequestBody requestBody = new StreamRequestBody(mediaTypeOctet, inputStream);
+		RequestBody requestBody = new StreamRequestBody(inputStream);
 
 		String url = uploadUrl + "/" + Endpoints.UploadMethods.file;
 		Request request = new Request.Builder()
@@ -89,12 +107,10 @@ public class HttpFileUploader {
 	 * https://stackoverflow.com/questions/25367888/upload-binary-file-with-okhttp-from-resources/25384793#25384793
 	 */
 	class StreamRequestBody extends RequestBody {
-		private MediaType	mediaType;
-		private InputStream	inputStream;
+		private InputStream inputStream;
 
 		/** The InpuStream will be automatically closed at the end of the upload */
-		public StreamRequestBody(final MediaType mediaType, final InputStream inputStream) {
-			this.mediaType = mediaType;
+		public StreamRequestBody(final InputStream inputStream) {
 			this.inputStream = inputStream;
 		}
 
@@ -105,7 +121,7 @@ public class HttpFileUploader {
 
 		@Override
 		public MediaType contentType() {
-			return mediaType;
+			return MediaType.parse(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE);
 		}
 
 		@Override

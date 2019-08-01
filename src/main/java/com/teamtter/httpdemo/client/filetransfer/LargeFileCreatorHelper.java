@@ -6,6 +6,7 @@ import java.io.RandomAccessFile;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.text.DecimalFormat;
+import java.util.Random;
 
 import lombok.extern.slf4j.Slf4j;
 
@@ -17,8 +18,14 @@ public class LargeFileCreatorHelper {
 		File file = path.toFile();
 		file.deleteOnExit();
 
+		byte[] randomBuffer = new byte[256];
+		new Random().nextBytes(randomBuffer);
+		 
 		try (RandomAccessFile f = new RandomAccessFile(file, "rw")) {
+			f.write(randomBuffer);
 			f.setLength(nbBytes);
+			f.seek(nbBytes - 256);
+			f.write(randomBuffer);
 		}
 		log.info("Created file {} of size {}", file, nbBytes);
 		return file;

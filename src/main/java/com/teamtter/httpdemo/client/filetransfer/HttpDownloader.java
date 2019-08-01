@@ -31,7 +31,7 @@ public class HttpDownloader {
 		} 
 	}
 
-	public void downloadFile(String toDownloadFilename, String endpoint) throws RuntimeException {
+	public File downloadFile(String toDownloadFilename, String endpoint) throws RuntimeException {
 		try {
 			String url = baseUrl + endpoint + "?" + Endpoints.UploadMethods.filename_var + "=" + toDownloadFilename;
 			Request request = new Request.Builder()
@@ -53,6 +53,7 @@ public class HttpDownloader {
 				IOUtils.copy(downloadedFileStream, fos);
 				log.debug("File {} correctly copied to {}", toDownloadFilename/*, filesize*/, downloadedFile);
 			}
+			return downloadedFile;
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}

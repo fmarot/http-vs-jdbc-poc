@@ -1,14 +1,18 @@
 package com.teamtter.httpdemo.client;
 
 import java.io.File;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URL;
+import java.nio.file.Files;
 
 import org.springframework.util.StopWatch;
 import org.springframework.util.unit.DataSize;
 
-import com.teamtter.httpdemo.client.filetransfer.HttpFileUploader;
+import com.google.common.hash.HashCode;
+import com.google.common.hash.Hashing;
 import com.teamtter.httpdemo.client.filetransfer.HttpDownloader;
+import com.teamtter.httpdemo.client.filetransfer.HttpFileUploader;
 import com.teamtter.httpdemo.client.filetransfer.JdbcDownloader;
 import com.teamtter.httpdemo.client.filetransfer.JdbcUploader;
 import com.teamtter.httpdemo.client.filetransfer.LargeFileCreatorHelper;
@@ -35,6 +39,7 @@ public class DlClient {
 		URL serverUrl = args.length > 1 ? new URL(args[1]) : defaultUrl;
 
 		File largeFile = LargeFileCreatorHelper.createAutoDestructibleLargeFileInTmp(nbBytes);
+		HashCode hc = com.google.common.io.Files.asByteSource(largeFile).hash(Hashing.goodFastHash(32));
 		String fileId = largeFile.getName();
 		OkHttpClient httpClient = buildHttpClient();
 		URI uploadUri = serverUrl.toURI().resolve(Endpoints.upload);
@@ -46,21 +51,33 @@ public class DlClient {
 		log.info("Server infos: {}", serverInfos);
 
 		JdbcUploader jdbcUploader = new JdbcUploader(serverUrl.getHost(), jdbcPort, dbFilename);
-		
+
 		final HttpDownloader httpDownloader = new HttpDownloader(httpClient, serverUrl);
-		
-		
+
 		executeCode(1, "http_upload", () -> fileUploader.uploadFile(largeFile));
-		
+
+		executeCode(1, "http_upload_multi", () -> fileUploader.uploadFileAsMultipart(largeFile));
+
 		executeCode(1, "jdbc_upload", () -> jdbcUploader.uploadFile(largeFile));
-		
-		executeCode(NB_LOOP, "http_1", () -> httpDownloader.downloadFile(fileId, Endpoints.DownloadMethods.file));
 
-		executeCode(NB_LOOP, "http_spring", () -> httpDownloader.downloadFile(fileId, Endpoints.DownloadMethods.file_spring));
+		executeCode(NB_LOOP, "http_1", () -> checkFileHash(httpDownloader.downloadFile(fileId, Endpoints.DownloadMethods.file), hc));
 
-		//		executeDownload(3, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
+		executeCode(NB_LOOP, "http_spring", () -> checkFileHash(httpDownloader.downloadFile(fileId, Endpoints.DownloadMethods.file_spring), hc));
 
-		executeCode(NB_LOOP, "JDBC", () -> new JdbcDownloader(serverUrl.getHost(), jdbcPort, dbFilename).downloadFile(fileId));
+		// executeDownload(3, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
+
+		executeCode(NB_LOOP, "JDBC", () -> checkFileHash(new JdbcDownloader(serverUrl.getHost(), jdbcPort, dbFilename).downloadFile(fileId), hc));
+	}
+
+	private static void checkFileHash(File downloadedFile, HashCode expected) {
+		try {
+			HashCode hc = com.google.common.io.Files.asByteSource(downloadedFile).hash(Hashing.goodFastHash(32));
+			if (!hc.equals(expected)) {
+				throw new RuntimeException("Wrong file hash for: " + downloadedFile);
+			}
+		} catch (IOException e) {
+			throw new RuntimeException("Unexpected error...", e);
+		}
 	}
 
 	/** executes the downloadCode a certain number of times, logging the time result with a watch having the "donwloadType" id */

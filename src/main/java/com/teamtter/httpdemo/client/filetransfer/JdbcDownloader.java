@@ -47,7 +47,7 @@ public class JdbcDownloader {
 
 	// jdbc:h2:tcp://127.0.0.1:9092/C:\Program Files\Olea SphereSP19\Data\DB;LOCK_TIMEOUT=10000
 	
-	public void downloadFile(String filename) throws RuntimeException {
+	public File downloadFile(String filename) throws RuntimeException {
 		try {
 			try (Connection conn = getDBConnection()) {
 				String sql = "SELECT TOP 1 data FROM STREAMING_FILE_RECORD WHERE filename = ? ";
@@ -63,8 +63,9 @@ public class JdbcDownloader {
 						fos.flush();
 						log.debug("File {} correctly copied to {}", filename, downloadedFile);
 					}
+					return downloadedFile;
 				} else {
-					log.warn("File {} not found to download", filename);
+					throw new RuntimeException("File " + filename + " not found to download");
 				}
 			}
 		} catch (Exception e) {
