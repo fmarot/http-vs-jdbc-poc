@@ -27,7 +27,7 @@ public class UploadController {
 	private final LargeFileService lfService;
 	private String databaseFileName;
 
-	public UploadController(LargeFileService lfService, @Value("${databaseFileName:~/tmp/test}") String databaseFileName) {
+	public UploadController(LargeFileService lfService, @Value("${databaseFileName}") String databaseFileName) {
 		this.lfService = lfService;
 		this.databaseFileName = databaseFileName;
 	}
@@ -38,7 +38,7 @@ public class UploadController {
 	public String upload(
 			@RequestParam(Endpoints.UploadMethods.filename_var) String filename,
 			@RequestParam(Endpoints.UploadMethods.filesize_var) long filesize,
-			HttpServletRequest request) throws IOException, SQLException, URISyntaxException {
+			HttpServletRequest request) throws Exception {
 		StreamingFileRecord newRecord = lfService.saveFile(filename, filesize, request.getInputStream());
 		return databaseFileName;
 	}

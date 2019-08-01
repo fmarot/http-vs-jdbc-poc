@@ -42,7 +42,7 @@ public class DlClient {
 		
 		executeDownload(3, "http_spring", () -> new FileDownloader(httpClient, serverUrl).downloadFile(fileId, Endpoints.DownloadMethods.file_spring));
 
-		executeDownload(3, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
+//		executeDownload(3, "publicFile", () -> new PublicFileDownloader(serverUrl).downloadFile("file.tmp"));
 		
 		executeDownload(3, "JDBC", () -> new FileDownloaderJdbc(serverUrl.getHost(), "9092", databaseFileName).downloadFile(fileId));
 	}

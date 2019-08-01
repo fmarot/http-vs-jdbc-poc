@@ -48,7 +48,7 @@ public class DownloadController {
 		response.setHeader(HttpHeaders.CONTENT_LENGTH, "" + record.getDataLength());
 		// response.setHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");	this line does not work. Alternatively the solution is to rely on @GetMapping(produces)
 
-		IOUtils.copyLarge(record.getData().getBinaryStream(), response.getOutputStream());
+		IOUtils.copyLarge(record.getData(), response.getOutputStream());
 		log.info("controller downloadFile returned the stream...");
 	}
 
@@ -62,7 +62,7 @@ public class DownloadController {
 //		response.setHeader(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=" + record.getFilename());	// allows the browser to propose downloading a separate file instead of displaying it inline
 		//response.setHeader(HttpHeaders.CONTENT_LENGTH, "" + record.getDataLength());
 		
-		InputStream binaryStream = record.getData().getBinaryStream();
+		InputStream binaryStream = record.getData();
 		log.info("controller downloadFileSpring returned the stream...");
 		
 		return new InputStreamResource(binaryStream) {
