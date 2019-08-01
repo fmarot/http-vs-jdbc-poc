@@ -6,7 +6,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.net.URI;
 
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.teamtter.httpdemo.common.Endpoints;
+import com.teamtter.httpdemo.common.ServerInfos;
 
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.Call;
@@ -15,35 +17,49 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
-import okhttp3.internal.Util;
 import okio.BufferedSink;
 import okio.Okio;
 import okio.Source;
 
 @Slf4j
-public class FileUploader {
+public class HttpFileUploader {
 
 	private static final MediaType	mediaTypeOctet	= MediaType.parse(org.springframework.http.MediaType.APPLICATION_OCTET_STREAM_VALUE);
 
 	private OkHttpClient			httpClient;
 
-	private URI					uploadUrl;
+	private URI						uploadUrl;
 
-	public FileUploader(OkHttpClient httpClient, URI uploadUri) {
+	private ObjectMapper			objectMapper;
+
+	public HttpFileUploader(OkHttpClient httpClient, URI uploadUri) {
 		this.httpClient = httpClient;
 		this.uploadUrl = uploadUri;
+		objectMapper = new ObjectMapper();
 	}
 
-	public String uploadFile(File toUploadFile) throws IOException {
+	public void uploadFile(File toUploadFile) throws IOException {
 		try (InputStream is = new FileInputStream(toUploadFile)) {
-			Response response = uploadStreamTo(is, 
+			Response response = uploadStreamTo(is,
 					Endpoints.UploadMethods.filename_var + "=" + toUploadFile.getName()
-					+ "&"
-					+ Endpoints.UploadMethods.filesize_var + "=" + toUploadFile.length()
-					);
-			String databaseFileName = response.body().string();
-			return databaseFileName;
+							+ "&"
+							+ Endpoints.UploadMethods.filesize_var + "=" + toUploadFile.length());
 		}
+	}
+
+	public ServerInfos queryServerInfos() throws IOException {
+		String url = uploadUrl + "/" + Endpoints.UploadMethods.serverInfos;
+		Request request = new Request.Builder()
+				.url(url.toString())
+				.get()
+				.build();
+		Call call = httpClient.newCall(request);
+		Response response = call.execute();
+		String json = response.body().string();
+
+		ServerInfos itemWithOwner = objectMapper.readValue(json, ServerInfos.class);
+
+		return itemWithOwner;
 	}
 
 	/** Warning: The InpuStream will be automatically closed at the end of the upload. </br>
@@ -51,8 +67,9 @@ public class FileUploader {
 	public Response uploadStreamTo(InputStream inputStream, String queryParameters) throws IOException {
 		RequestBody requestBody = new StreamRequestBody(mediaTypeOctet, inputStream);
 
+		String url = uploadUrl + "/" + Endpoints.UploadMethods.file;
 		Request request = new Request.Builder()
-				.url(uploadUrl + "?" + queryParameters)
+				.url(url + "?" + queryParameters)
 				.post(requestBody)
 				.build();
 		Call call = httpClient.newCall(request);
@@ -78,7 +95,7 @@ public class FileUploader {
 			this.mediaType = mediaType;
 			this.inputStream = inputStream;
 		}
-		
+
 		@Override
 		public boolean isOneShot() {
 			return true;
@@ -101,8 +118,8 @@ public class FileUploader {
 				source = Okio.source(inputStream);
 				sink.writeAll(source);
 			} finally {
-//				Util.closeQuietly(inputStream);
-//				Util.closeQuietly(source);
+				// Util.closeQuietly(inputStream);
+				// Util.closeQuietly(source);
 			}
 		}
 	}

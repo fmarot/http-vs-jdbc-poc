@@ -17,12 +17,12 @@ import okhttp3.Request;
 import okhttp3.Response;
 
 @Slf4j
-public class FileDownloader {
+public class HttpDownloader {
 
 	private OkHttpClient httpClient;
 	private final String baseUrl;
 
-	public FileDownloader(OkHttpClient httpClient, URL serverUrl) {
+	public HttpDownloader(OkHttpClient httpClient, URL serverUrl) {
 		this.httpClient = httpClient;
 		try {
 			baseUrl = serverUrl.toURI().resolve(Endpoints.download).toString();

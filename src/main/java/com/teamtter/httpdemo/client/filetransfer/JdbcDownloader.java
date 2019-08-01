@@ -18,7 +18,7 @@ import org.h2.util.IOUtils;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-public class FileDownloaderJdbc {
+public class JdbcDownloader {
 	private static final String DB_DRIVER = "org.h2.Driver";
 	static {
 		System.setProperty("h2.lobInDatabase", "false");
@@ -35,10 +35,10 @@ public class FileDownloaderJdbc {
 	private String connectionString;
 
 	public static void main(String[] args) throws Exception {
-		new FileDownloaderJdbc("127.0.0.1", "9092", "~/test").downloadFile("xxx");
+		new JdbcDownloader("127.0.0.1", "9092", "~/test").downloadFile("xxx");
 	}
 
-	public FileDownloaderJdbc(String serverHost, String jdbcPort, String databaseName) {
+	public JdbcDownloader(String serverHost, String jdbcPort, String databaseName) {
 		connectionString = "jdbc:h2:tcp://" + serverHost + ":" + jdbcPort + "/" + databaseName + ";LOCK_TIMEOUT=10000";
 	}
 

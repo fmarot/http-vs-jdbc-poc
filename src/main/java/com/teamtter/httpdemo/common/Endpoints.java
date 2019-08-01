@@ -16,5 +16,7 @@ public class Endpoints {
 		public static final String filename_var = "filename";
 		public static final String filesize_var = "filesize";
 		
+		public static final String serverInfos = "serverInfos";
+		
 	}
 }

@@ -1,42 +1,24 @@
-= an http stack demo
-
-== acknowlegment
-
-The stream-to-a-blob-in-database-to-not-fill-the-memory feature is taken from there (but we use filesystem H2 instead of Postgres): https://github.com/janzyka/blobs-jpa
+= Performance comparison between HTTP & JDBC
 
 
-== how to use
 
-=== stream to blob in DB
+== How to
 
-==== Create a large file
-The goal is to showcase how to stream LARGE files to the DB without having to store all the bytes in memory.
+This command will create 2 jars, one client and one server
 
-Create a large file on Windows (50MB):
+ mvn package 
 
- fsutil file createnew test.txt 52428800
+== launch script
 
-Create a large file in Java:
+=== client
 
- try (RandomAccessFile raf = new RandomAccessFile(file, "rw")) {
-    raf.setLength(newSize);
- } finally {
-    raf.close();
- }
- 
-Create a large file in Linux:
+You can choose the size of the file to be uploaded with the 1st command line parameters.
+The server HTTP address is the second parameter.
 
- fallocate -l 10G gentoo_root.img
+ java -jar http-vs-jdbc-poc-0.0.1-SNAPSHOT-client.jar 500MB http://127.0.0.1:80
 
-==== send it to server
+=== server
 
- curl -D - -F "file=@test.txt" http://localhost:8080/blobs
 
-you can monitor with VisualVM that the memory of the server did not increase.
-
-== TODO
-
-* websocket sample with and without STOMP
-* real unit tests
-
+ java -jar http-vs-jdbc-poc-0.0.1-SNAPSHOT-server.jar --databaseFileName=toto --server.port=80 --serverJdbcPort=9092
 
