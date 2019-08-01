@@ -18,7 +18,7 @@ import com.teamtter.httpdemo.server.largefile.service.LargeFileService;
 import lombok.extern.slf4j.Slf4j;
 
 @Slf4j
-@RestController			// not @RestController !
+@RestController
 @RequestMapping(Endpoints.upload)
 public class UploadController {
 

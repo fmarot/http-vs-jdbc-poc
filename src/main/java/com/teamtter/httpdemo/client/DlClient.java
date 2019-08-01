@@ -10,6 +10,7 @@ import org.springframework.util.unit.DataSize;
 import com.teamtter.httpdemo.client.filetransfer.HttpFileUploader;
 import com.teamtter.httpdemo.client.filetransfer.HttpDownloader;
 import com.teamtter.httpdemo.client.filetransfer.JdbcDownloader;
+import com.teamtter.httpdemo.client.filetransfer.JdbcUploader;
 import com.teamtter.httpdemo.client.filetransfer.LargeFileCreatorHelper;
 import com.teamtter.httpdemo.common.Endpoints;
 import com.teamtter.httpdemo.common.ServerInfos;
@@ -44,11 +45,15 @@ public class DlClient {
 		String dbFilename = serverInfos.getDatabaseFileName();
 		log.info("Server infos: {}", serverInfos);
 
-		fileUploader.uploadFile(largeFile);
-
+		JdbcUploader jdbcUploader = new JdbcUploader(serverUrl.getHost(), jdbcPort, dbFilename);
+		
 		final HttpDownloader httpDownloader = new HttpDownloader(httpClient, serverUrl);
-		executeCode(NB_LOOP, "http_1", () -> httpDownloader.downloadFile(fileId, Endpoints.DownloadMethods.file));
-
+		
+		
+		executeCode(1, "http_upload", () -> fileUploader.uploadFile(largeFile));
+		
+		executeCode(1, "jdbc_upload", () -> jdbcUploader.uploadFile(largeFile));
+		
 		executeCode(NB_LOOP, "http_1", () -> httpDownloader.downloadFile(fileId, Endpoints.DownloadMethods.file));
 
 		executeCode(NB_LOOP, "http_spring", () -> httpDownloader.downloadFile(fileId, Endpoints.DownloadMethods.file_spring));
@@ -66,7 +71,7 @@ public class DlClient {
 			code.run();
 			watch.stop();
 		}
-		log.info("\n{}: {}\n", executionId, watch);
+		log.info("\n\n{}\n", watch);
 	}
 
 	private static OkHttpClient buildHttpClient() {

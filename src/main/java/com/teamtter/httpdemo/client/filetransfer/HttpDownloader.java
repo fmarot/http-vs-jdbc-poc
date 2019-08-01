@@ -51,7 +51,7 @@ public class HttpDownloader {
 					log.error("could not compute content length...");
 				}
 				IOUtils.copy(downloadedFileStream, fos);
-				log.info("File {} correctly copied to {}", toDownloadFilename/*, filesize*/, downloadedFile);
+				log.debug("File {} correctly copied to {}", toDownloadFilename/*, filesize*/, downloadedFile);
 			}
 		} catch (Exception e) {
 			throw new RuntimeException(e);

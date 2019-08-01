@@ -4,6 +4,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.sql.SQLException;
 
+import javax.servlet.ServletOutputStream;
 import javax.servlet.http.HttpServletResponse;
 
 import org.apache.tomcat.util.http.fileupload.IOUtils;
@@ -48,7 +49,10 @@ public class DownloadController {
 		response.setHeader(HttpHeaders.CONTENT_LENGTH, "" + record.getDataLength());
 		// response.setHeader(HttpHeaders.CONTENT_TYPE, "application/octet-stream");	this line does not work. Alternatively the solution is to rely on @GetMapping(produces)
 
-		IOUtils.copyLarge(record.getData(), response.getOutputStream());
+		InputStream data = record.getData();
+		ServletOutputStream outputStream = response.getOutputStream();
+		
+		IOUtils.copyLarge(data, outputStream);
 		log.info("controller downloadFile returned the stream...");
 	}
 

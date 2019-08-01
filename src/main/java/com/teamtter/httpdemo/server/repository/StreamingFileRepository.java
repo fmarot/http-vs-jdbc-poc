@@ -37,7 +37,7 @@ public class StreamingFileRepository {
 	public Optional<StreamingFileRecord> findByFilename(String filename) throws SQLException {
 		try (Connection conn = getConnection();
 			Statement stmt = conn.createStatement()) {
-			try (PreparedStatement ps = conn.prepareStatement("SELECT DATALENGTH, DATA FROM STREAMING_FILE_RECORD WHERE FILENAME=?")) {
+			try (PreparedStatement ps = conn.prepareStatement("SELECT TOP 1 DATALENGTH, DATA FROM STREAMING_FILE_RECORD WHERE FILENAME=?")) {
 				ps.setString(1, filename);
 				ResultSet rs = ps.executeQuery();
 				if (rs.next()) {

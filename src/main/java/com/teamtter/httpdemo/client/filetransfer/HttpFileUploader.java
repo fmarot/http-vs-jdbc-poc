@@ -38,12 +38,14 @@ public class HttpFileUploader {
 		objectMapper = new ObjectMapper();
 	}
 
-	public void uploadFile(File toUploadFile) throws IOException {
+	public void uploadFile(File toUploadFile) throws RuntimeException {
 		try (InputStream is = new FileInputStream(toUploadFile)) {
 			Response response = uploadStreamTo(is,
 					Endpoints.UploadMethods.filename_var + "=" + toUploadFile.getName()
 							+ "&"
 							+ Endpoints.UploadMethods.filesize_var + "=" + toUploadFile.length());
+		} catch (Exception e) {
+			throw new RuntimeException(e);
 		}
 	}
 
