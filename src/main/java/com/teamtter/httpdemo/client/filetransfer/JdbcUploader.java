@@ -66,7 +66,7 @@ public class JdbcUploader {
 		try (Connection connection = getDBConnection()) {
 
 			String insertQuery = "INSERT INTO STREAMING_FILE_RECORD(FILENAME, DATALENGTH, DATA)  VALUES (?, ?, ?) ";
-			log.info("Will INSERT/upload into table with jdbc file {}", toUploadFile);
+			log.debug("Will INSERT/upload into table with jdbc file {}", toUploadFile);
 			try (PreparedStatement pstmt = connection.prepareStatement(insertQuery);
 					InputStream binaryStreamToUpload = new FileInputStream(toUploadFile)) {
 				pstmt.setString(1, toUploadFile.getName());

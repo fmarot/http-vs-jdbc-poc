@@ -23,3 +23,5 @@ The server HTTP address is the second parameter.
 
 == TODO
 
+* Implement some runs with Java's default http client to compare with okhttp's one
+
